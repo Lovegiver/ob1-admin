@@ -1,9 +1,7 @@
-import {
-    ActivityFeed,
-} from "@/components/dashboard/ActivityFeed.tsx";
 import { MetricCard } from "@/components/dashboard/MetricCard.tsx";
 import { useRuntime } from "@/context/useRuntime.ts";
 import { RuntimeMetricsChart } from "@/components/dashboard/RuntimeMetricsChart.tsx";
+import { RuntimeTimeline } from "@/components/runtime/RuntimeTimeline.tsx";
 
 export function DashboardPage() {
     const { metrics, activities, history } = useRuntime();
@@ -64,7 +62,7 @@ export function DashboardPage() {
 
             <RuntimeMetricsChart data={history} />
 
-            <ActivityFeed activities={activities} />
+            <RuntimeTimeline activities={activities} />
         </div>
     );
 }

@@ -36,6 +36,8 @@ export function RuntimeProvider({ children, }: RuntimeProviderProps){
     const [connectionStatus, setConnectionStatus] =
         useState<RuntimeConnectionStatus>("disconnected");
 
+    const [isTimelinePaused, setIsTimelinePaused] = useState(false);
+
     function resolveRuntimeSeverity(
         eventType: string,
     ): RuntimeActivity["severity"] {
@@ -55,6 +57,10 @@ export function RuntimeProvider({ children, }: RuntimeProviderProps){
         }
 
         return "info";
+    }
+
+    function toggleTimelinePaused() {
+        setIsTimelinePaused((previousValue) => !previousValue);
     }
 
     useEffect(() => {
@@ -118,10 +124,16 @@ export function RuntimeProvider({ children, }: RuntimeProviderProps){
                     severity: resolveRuntimeSeverity(data.type),
                 };
 
-                setActivities((previousActivities) => [
-                    runtimeActivity,
-                    ...previousActivities,
-                ].slice(0, 10));
+                setActivities((previousActivities) => {
+                    if (isTimelinePaused) {
+                        return previousActivities;
+                    }
+
+                    return [
+                        runtimeActivity,
+                        ...previousActivities,
+                    ].slice(0, 10);
+                });
             },
             onOpen: () => {
                 setConnectionStatus("connected");
@@ -131,7 +143,7 @@ export function RuntimeProvider({ children, }: RuntimeProviderProps){
             },
             reconnectDelayMs: 3000,
         });
-    }, []);
+    }, [isTimelinePaused]);
 
     return (
         <RuntimeContext.Provider
@@ -140,6 +152,8 @@ export function RuntimeProvider({ children, }: RuntimeProviderProps){
                 activities,
                 connectionStatus,
                 history,
+                isTimelinePaused,
+                toggleTimelinePaused,
             }}
         >
             {children}

@@ -25,6 +25,8 @@ export interface RuntimeContextValue {
     activities: RuntimeActivity[];
     connectionStatus: RuntimeConnectionStatus;
     history: RuntimeMetricsHistoryPoint[];
+    isTimelinePaused: boolean;
+    toggleTimelinePaused: () => void;
 }
 
 export const RuntimeContext =
