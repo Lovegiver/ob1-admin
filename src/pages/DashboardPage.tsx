@@ -29,7 +29,7 @@ export function DashboardPage() {
             label: "Retries",
             value: metrics.retries,
             description: "Delivery retries scheduled",
-            status: "neutral" as const,
+            status: "warning" as const,
         },
         {
             label: "Dead Letters",
