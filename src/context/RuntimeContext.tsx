@@ -1,8 +1,9 @@
 import {
     useEffect,
+    useRef,
     useState,
+    type ReactNode,
 } from "react";
-import type { ReactNode } from "react";
 import { RuntimeContext } from "@/context/runtimeContextDefinition.ts";
 import type {
     RuntimeConnectionStatus,
@@ -14,6 +15,9 @@ import {
     type RuntimeEventMessage,
 } from "@/services/runtimeEventService.ts";
 import type { RuntimeActivity } from "@/components/dashboard/ActivityFeed.tsx";
+
+
+
 interface RuntimeProviderProps {
     children: ReactNode;
 }
@@ -37,6 +41,14 @@ export function RuntimeProvider({ children, }: RuntimeProviderProps){
         useState<RuntimeConnectionStatus>("disconnected");
 
     const [isTimelinePaused, setIsTimelinePaused] = useState(false);
+
+    const currentBucketRef = useRef({
+        eventsReceived: 0,
+        delivered: 0,
+        observations: 0,
+        retries: 0,
+        deadLetters: 0,
+    });
 
     function resolveRuntimeSeverity(
         eventType: string,
@@ -66,6 +78,7 @@ export function RuntimeProvider({ children, }: RuntimeProviderProps){
     useEffect(() => {
         return connectRuntimeEventStream({
             onMessage: (data: RuntimeEventMessage) => {
+
                 setMetrics((previousMetrics) => {
                     const updatedMetrics = {
                         ...previousMetrics,
@@ -94,27 +107,25 @@ export function RuntimeProvider({ children, }: RuntimeProviderProps){
                     return updatedMetrics;
                 });
 
-                setHistory((previousHistory) => [
-                    ...previousHistory,
-                    {
-                        timestamp: new Date().toLocaleTimeString(),
+                if (data.type === "event.received") {
+                    currentBucketRef.current.eventsReceived += 1;
+                }
 
-                        eventsReceived:
-                            data.type === "event.received" ? 1 : 0,
+                if (data.type === "delivery.succeeded") {
+                    currentBucketRef.current.delivered += 1;
+                }
 
-                        delivered:
-                            data.type === "delivery.succeeded" ? 1 : 0,
+                if (data.type === "observation.created") {
+                    currentBucketRef.current.observations += 1;
+                }
 
-                        observations:
-                            data.type === "observation.created" ? 1 : 0,
+                if (data.type === "delivery.retry") {
+                    currentBucketRef.current.retries += 1;
+                }
 
-                        retries:
-                            data.type === "delivery.retry" ? 1 : 0,
-
-                        deadLetters:
-                            data.type === "dead_letter.created" ? 1 : 0,
-                    },
-                ].slice(-20));
+                if (data.type === "dead_letter.created") {
+                    currentBucketRef.current.deadLetters += 1;
+                }
 
                 const runtimeActivity: RuntimeActivity = {
                     id: crypto.randomUUID(),
@@ -144,6 +155,40 @@ export function RuntimeProvider({ children, }: RuntimeProviderProps){
             reconnectDelayMs: 3000,
         });
     }, [isTimelinePaused]);
+
+    useEffect(() => {
+        const intervalId = window.setInterval(() => {
+            setHistory((previousHistory) => {
+                const bucket = currentBucketRef.current;
+
+                const nextPoint = {
+                    timestamp: Date.now(),
+                    eventsReceived: bucket.eventsReceived,
+                    delivered: bucket.delivered,
+                    observations: bucket.observations,
+                    retries: bucket.retries,
+                    deadLetters: bucket.deadLetters,
+                };
+
+                currentBucketRef.current = {
+                    eventsReceived: 0,
+                    delivered: 0,
+                    observations: 0,
+                    retries: 0,
+                    deadLetters: 0,
+                };
+
+                return [
+                    ...previousHistory,
+                    nextPoint,
+                ].slice(-60);
+            });
+        }, 1000);
+
+        return () => {
+            window.clearInterval(intervalId);
+        };
+    }, []);
 
     return (
         <RuntimeContext.Provider

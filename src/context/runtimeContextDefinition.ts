@@ -12,7 +12,7 @@ export interface RuntimeMetrics {
 }
 
 export interface RuntimeMetricsHistoryPoint {
-    timestamp: string;
+    timestamp: number;
     eventsReceived: number;
     delivered: number;
     observations: number;

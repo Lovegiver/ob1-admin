@@ -6,11 +6,3 @@ export interface DashboardMetric {
     description: string;
     status: DashboardMetricStatus;
 }
-
-export interface ActivityItem {
-    id: string;
-    timestamp: string;
-    title: string;
-    description: string;
-    severity: "info" | "success" | "warning" | "error";
-}

@@ -12,7 +12,7 @@ import {
 } from "recharts";
 
 interface RuntimeMetricsPoint {
-    timestamp: string;
+    timestamp: number;
     eventsReceived: number;
     delivered: number;
     observations: number;
@@ -165,12 +165,26 @@ export function RuntimeMetricsChart({
 
                         <XAxis
                             dataKey="timestamp"
+                            type="number"
+                            domain={["dataMin", "dataMax"]}
+                            tickFormatter={(value) =>
+                                new Date(value).toLocaleTimeString()
+                            }
                             stroke="#94a3b8"
+                            interval="preserveStartEnd"
+                            minTickGap={48}
                         />
 
-                        <YAxis stroke="#94a3b8" />
+                        <YAxis
+                            stroke="#94a3b8"
+                            allowDecimals={false}
+                        />
 
-                        <Tooltip />
+                        <Tooltip
+                            labelFormatter={(value) =>
+                                new Date(Number(value)).toLocaleTimeString()
+                            }
+                        />
 
                         <Legend />
 
@@ -210,6 +224,7 @@ export function RuntimeMetricsChart({
                                 stroke="#22d3ee"
                                 fill="url(#eventsGradient)"
                                 strokeWidth={2}
+                                isAnimationActive={false}
                             />
                         )}
 
@@ -221,6 +236,7 @@ export function RuntimeMetricsChart({
                                 stroke="#10b981"
                                 fill="url(#deliveryGradient)"
                                 strokeWidth={2}
+                                isAnimationActive={false}
                             />
                         )}
 
@@ -232,6 +248,7 @@ export function RuntimeMetricsChart({
                                 stroke="#f59e0b"
                                 fill="url(#retriesGradient)"
                                 strokeWidth={2}
+                                isAnimationActive={false}
                             />
                         )}
 
@@ -243,6 +260,7 @@ export function RuntimeMetricsChart({
                                 stroke="#ef4444"
                                 fill="url(#deadLettersGradient)"
                                 strokeWidth={2}
+                                isAnimationActive={false}
                             />
                         )}
 
