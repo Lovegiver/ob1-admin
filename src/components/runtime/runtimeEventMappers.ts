@@ -16,7 +16,6 @@ export function resolveRuntimeSeverity(event: RuntimeEvent): RuntimeSeverity {
         case RuntimeEventType.DeliveryDeadLettered:
             return RuntimeSeverity.Error;
 
-        case RuntimeEventType.EventCompleted:
         case RuntimeEventType.EventRouted:
         case RuntimeEventType.MetricsExtracted:
         case RuntimeEventType.EventReceived:
@@ -43,10 +42,7 @@ export function isDeliverySuccess(event: RuntimeEvent): boolean {
 }
 
 export function isDeliveryFailure(event: RuntimeEvent): boolean {
-    return (
-        event.type === RuntimeEventType.DeliveryFailed ||
-        event.type === RuntimeEventType.DeliveryDeadLettered
-    );
+    return event.type === RuntimeEventType.DeliveryFailed;
 }
 
 export function isRetry(event: RuntimeEvent): boolean {
@@ -79,10 +75,6 @@ export function isDeliveryDeadLettered(
 
 export function isEventRouted(event: RuntimeEvent): boolean {
     return event.type === RuntimeEventType.EventRouted;
-}
-
-export function isEventCompleted(event: RuntimeEvent): boolean {
-    return event.type === RuntimeEventType.EventCompleted;
 }
 
 export function isEventUnroutable(event: RuntimeEvent): boolean {

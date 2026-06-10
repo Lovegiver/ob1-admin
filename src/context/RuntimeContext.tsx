@@ -25,7 +25,6 @@ import {
     isDeliveryDeadLettered,
     isDeliveryFailure,
     isDeliverySuccess,
-    isEventCompleted,
     isEventFailed,
     isEventReceived,
     isEventRouted,
@@ -53,7 +52,6 @@ export function RuntimeProvider({
         eventsReceived: 0,
 
         eventsRouted: 0,
-        eventsCompleted: 0,
         eventsUnroutable: 0,
         eventsFailed: 0,
 
@@ -76,7 +74,6 @@ export function RuntimeProvider({
         eventsReceived: 0,
 
         eventsRouted: 0,
-        eventsCompleted: 0,
         eventsUnroutable: 0,
         eventsFailed: 0,
 
@@ -144,10 +141,6 @@ export function RuntimeProvider({
                         updatedMetrics.eventsRouted += 1;
                     }
 
-                    if (isEventCompleted(data)) {
-                        updatedMetrics.eventsCompleted += 1;
-                    }
-
                     if (isEventUnroutable(data)) {
                         updatedMetrics.eventsUnroutable += 1;
                     }
@@ -190,10 +183,6 @@ export function RuntimeProvider({
 
                 if (isEventRouted(data)) {
                     currentBucketRef.current.eventsRouted += 1;
-                }
-
-                if (isEventCompleted(data)) {
-                    currentBucketRef.current.eventsCompleted += 1;
                 }
 
                 if (isEventUnroutable(data)) {
@@ -269,7 +258,6 @@ export function RuntimeProvider({
                     eventsReceived: bucket.eventsReceived,
 
                     eventsRouted: bucket.eventsRouted,
-                    eventsCompleted: bucket.eventsCompleted,
                     eventsUnroutable: bucket.eventsUnroutable,
                     eventsFailed: bucket.eventsFailed,
 
@@ -286,7 +274,6 @@ export function RuntimeProvider({
                     eventsReceived: 0,
 
                     eventsRouted: 0,
-                    eventsCompleted: 0,
                     eventsUnroutable: 0,
                     eventsFailed: 0,
 
@@ -342,6 +329,7 @@ export function RuntimeProvider({
                 history,
                 isTimelinePaused,
                 toggleTimelinePaused,
+                workerHealth,
             }}
         >
             {children}

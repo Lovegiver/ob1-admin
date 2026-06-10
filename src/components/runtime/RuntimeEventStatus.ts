@@ -1,7 +1,6 @@
 export const RuntimeEventStatus = {
     Received: "RECEIVED",
     Routed: "ROUTED",
-    Completed: "COMPLETED",
     Unroutable: "UNROUTABLE",
     Failed: "FAILED",
 } as const;

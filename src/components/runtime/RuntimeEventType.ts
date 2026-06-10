@@ -2,7 +2,6 @@ export const RuntimeEventType = {
     EventReceived: "EVENT_RECEIVED",
 
     EventRouted: "EVENT_ROUTED",
-    EventCompleted: "EVENT_COMPLETED",
     EventUnroutable: "EVENT_UNROUTABLE",
     EventFailed: "EVENT_FAILED",
 

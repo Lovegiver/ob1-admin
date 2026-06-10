@@ -7,7 +7,6 @@ export interface RuntimeMetrics {
     eventsReceived: number;
 
     eventsRouted: number;
-    eventsCompleted: number;
     eventsUnroutable: number;
     eventsFailed: number;
 
@@ -26,7 +25,6 @@ export interface RuntimeMetricsHistoryPoint {
     eventsReceived: number;
 
     eventsRouted: number;
-    eventsCompleted: number;
     eventsUnroutable: number;
     eventsFailed: number;
 
@@ -46,6 +44,7 @@ export interface RuntimeContextValue {
     history: RuntimeMetricsHistoryPoint[];
     isTimelinePaused: boolean;
     toggleTimelinePaused: () => void;
+    workerHealth: WorkerHealth;
 }
 
 export const RuntimeContext =

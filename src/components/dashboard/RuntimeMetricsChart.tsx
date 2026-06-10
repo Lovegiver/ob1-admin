@@ -30,7 +30,6 @@ export function RuntimeMetricsChart({
         deadLetters: true,
 
         eventsReceived: false,
-        eventsCompleted: false,
         eventsUnroutable: false,
         eventsFailed: false,
         retries: false,
@@ -66,7 +65,6 @@ export function RuntimeMetricsChart({
                     deliveriesFailed: "Deliveries failed",
                     deadLetters: "Dead letters",
                     eventsReceived: "Events received",
-                    eventsCompleted: "Events completed",
                     eventsUnroutable: "Events unroutable",
                     eventsFailed: "Events failed",
                     retries: "Retries",
@@ -210,18 +208,6 @@ export function RuntimeMetricsChart({
                                 dataKey="eventsReceived"
                                 stroke="#38bdf8"
                                 fill="#38bdf822"
-                                strokeWidth={2}
-                                isAnimationActive={false}
-                            />
-                        )}
-
-                        {visibleSeries.eventsCompleted && (
-                            <Area
-                                type="monotone"
-                                name="Events completed"
-                                dataKey="eventsCompleted"
-                                stroke="#a78bfa"
-                                fill="#a78bfa22"
                                 strokeWidth={2}
                                 isAnimationActive={false}
                             />

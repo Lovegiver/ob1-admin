@@ -24,13 +24,13 @@ const statusVariants: Record<string, string> = {
 export function MetricCard({ metric }: MetricCardProps) {
     return (
         <Card className="border-cyan-400/10 bg-slate-950/60 backdrop-blur transition hover:-translate-y-1 hover:border-cyan-300/30 hover:shadow-[0_0_30px_rgba(34,211,238,0.12)]">
-            <CardHeader className="flex flex-row items-start justify-between space-y-0">
+            <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-3">
                 <div>
                     <CardDescription className="uppercase tracking-widest text-slate-400">
                         {metric.label}
                     </CardDescription>
 
-                    <CardTitle className="mt-4 text-5xl font-black text-slate-100">
+                    <CardTitle className="mt-2 text-4xl font-black text-slate-100">
                         {metric.value.toLocaleString()}
                     </CardTitle>
                 </div>
