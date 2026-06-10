@@ -11,17 +11,12 @@ import {
     YAxis,
 } from "recharts";
 
-interface RuntimeMetricsPoint {
-    timestamp: number;
-    eventsReceived: number;
-    delivered: number;
-    observations: number;
-    retries: number;
-    deadLetters: number;
-}
+import type {
+    RuntimeMetricsHistoryPoint,
+} from "@/context/runtimeContextDefinition.ts";
 
 interface RuntimeMetricsChartProps {
-    data: RuntimeMetricsPoint[];
+    data: RuntimeMetricsHistoryPoint[];
 }
 
 export function RuntimeMetricsChart({
@@ -29,10 +24,17 @@ export function RuntimeMetricsChart({
                                     }: RuntimeMetricsChartProps) {
 
     const [visibleSeries, setVisibleSeries] = useState({
-        eventsReceived: true,
-        delivered: true,
-        retries: true,
+        eventsRouted: true,
+        deliveriesSucceeded: true,
+        deliveriesFailed: true,
         deadLetters: true,
+
+        eventsReceived: false,
+        eventsCompleted: false,
+        eventsUnroutable: false,
+        eventsFailed: false,
+        retries: false,
+        observations: false,
     });
 
     function toggleSeries(
@@ -52,112 +54,45 @@ export function RuntimeMetricsChart({
                 </h3>
 
                 <p className="mt-1 text-sm text-slate-400">
-                    Live websocket metrics stream.
+                    Live pipeline activity from OB1 runtime events.
                 </p>
+
             </div>
 
             <div className="mb-4 flex flex-wrap gap-2">
-                <button
-                    onClick={() => toggleSeries("eventsReceived")}
-                    className={
-                        visibleSeries.eventsReceived
-                            ? "rounded border border-cyan-400/20 bg-cyan-500/10 px-3 py-1 text-sm text-cyan-300"
-                            : "rounded border border-slate-700 bg-slate-900/40 px-3 py-1 text-sm text-slate-500"
-                    }
-                >
-                    Events
-                </button>
+                {Object.entries({
+                    eventsRouted: "Events routed",
+                    deliveriesSucceeded: "Deliveries OK",
+                    deliveriesFailed: "Deliveries failed",
+                    deadLetters: "Dead letters",
+                    eventsReceived: "Events received",
+                    eventsCompleted: "Events completed",
+                    eventsUnroutable: "Events unroutable",
+                    eventsFailed: "Events failed",
+                    retries: "Retries",
+                    observations: "Observations",
+                }).map(([key, label]) => {
+                    const seriesKey = key as keyof typeof visibleSeries;
 
-                <button
-                    onClick={() => toggleSeries("delivered")}
-                    className={
-                        visibleSeries.delivered
-                            ? "rounded border border-emerald-400/20 bg-emerald-500/10 px-3 py-1 text-sm text-emerald-300"
-                            : "rounded border border-slate-700 bg-slate-900/40 px-3 py-1 text-sm text-slate-500"
-                    }
-                >
-                    Delivered
-                </button>
-
-                <button
-                    onClick={() => toggleSeries("retries")}
-                    className={
-                        visibleSeries.retries
-                            ? "rounded border border-amber-400/20 bg-amber-500/10 px-3 py-1 text-sm text-amber-300"
-                            : "rounded border border-slate-700 bg-slate-900/40 px-3 py-1 text-sm text-slate-500"
-                    }
-                >
-                    Retries
-                </button>
-
-                <button
-                    onClick={() => toggleSeries("deadLetters")}
-                    className={
-                        visibleSeries.deadLetters
-                            ? "rounded border border-red-400/20 bg-red-500/10 px-3 py-1 text-sm text-red-300"
-                            : "rounded border border-slate-700 bg-slate-900/40 px-3 py-1 text-sm text-slate-500"
-                    }
-                >
-                    Dead Letters
-                </button>
+                    return (
+                        <button
+                            key={key}
+                            onClick={() => toggleSeries(seriesKey)}
+                            className={
+                                visibleSeries[seriesKey]
+                                    ? "rounded border border-cyan-400/20 bg-cyan-500/10 px-3 py-1 text-sm text-cyan-300"
+                                    : "rounded border border-slate-700 bg-slate-900/40 px-3 py-1 text-sm text-slate-500"
+                            }
+                        >
+                            {label}
+                        </button>
+                    );
+                })}
             </div>
 
             <div className="h-[320px]">
                 <ResponsiveContainer width="100%" height="100%">
                     <AreaChart data={data}>
-                        <defs>
-                            <linearGradient
-                                id="eventsGradient"
-                                x1="0"
-                                y1="0"
-                                x2="0"
-                                y2="1"
-                            >
-                                <stop
-                                    offset="5%"
-                                    stopColor="#22d3ee"
-                                    stopOpacity={0.4}
-                                />
-
-                                <stop
-                                    offset="95%"
-                                    stopColor="#22d3ee"
-                                    stopOpacity={0}
-                                />
-                            </linearGradient>
-
-                            <linearGradient
-                                id="deliveryGradient"
-                                x1="0"
-                                y1="0"
-                                x2="0"
-                                y2="1"
-                            >
-                                <stop
-                                    offset="5%"
-                                    stopColor="#10b981"
-                                    stopOpacity={0.4}
-                                />
-
-                                <stop
-                                    offset="95%"
-                                    stopColor="#10b981"
-                                    stopOpacity={0}
-                                />
-                            </linearGradient>
-
-                            <linearGradient id="retriesGradient" x1="0" y1="0" x2="0" y2="1">
-                                <stop offset="5%" stopColor="#f59e0b" stopOpacity={0.4} />
-                                <stop offset="95%" stopColor="#f59e0b" stopOpacity={0} />
-                            </linearGradient>
-
-                            <linearGradient id="deadLettersGradient" x1="0" y1="0" x2="0" y2="1">
-                                <stop offset="5%" stopColor="#ef4444" stopOpacity={0.4} />
-                                <stop offset="95%" stopColor="#ef4444" stopOpacity={0} />
-                            </linearGradient>
-
-                        </defs>
-
                         <CartesianGrid
                             strokeDasharray="3 3"
                             stroke="#334155"
@@ -166,7 +101,10 @@ export function RuntimeMetricsChart({
                         <XAxis
                             dataKey="timestamp"
                             type="number"
-                            domain={["dataMin", "dataMax"]}
+                            domain={[
+                                () => Date.now() - 60_000,
+                                () => Date.now(),
+                            ]}
                             tickFormatter={(value) =>
                                 new Date(value).toLocaleTimeString()
                             }
@@ -192,11 +130,12 @@ export function RuntimeMetricsChart({
                             const hasVisibleDeadLetter =
                                 visibleSeries.deadLetters && point.deadLetters > 0;
 
-                            const hasVisibleRetry =
-                                visibleSeries.retries && point.retries > 0;
+                            const hasVisibleFailure =
+                                visibleSeries.deliveriesFailed &&
+                                point.deliveriesFailed > 0;
 
                             const hasIncident =
-                                hasVisibleDeadLetter || hasVisibleRetry;
+                                hasVisibleDeadLetter || hasVisibleFailure;
 
                             if (!hasIncident) {
                                 return null;
@@ -216,37 +155,37 @@ export function RuntimeMetricsChart({
                             );
                         })}
 
-                        {visibleSeries.eventsReceived && (
+                        {visibleSeries.eventsRouted && (
                             <Area
                                 type="monotone"
-                                name="Events received"
-                                dataKey="eventsReceived"
+                                name="Events routed"
+                                dataKey="eventsRouted"
                                 stroke="#22d3ee"
-                                fill="url(#eventsGradient)"
+                                fill="#22d3ee22"
                                 strokeWidth={2}
                                 isAnimationActive={false}
                             />
                         )}
 
-                        {visibleSeries.delivered && (
+                        {visibleSeries.deliveriesSucceeded && (
                             <Area
                                 type="monotone"
-                                name="Events delivered"
-                                dataKey="delivered"
+                                name="Deliveries OK"
+                                dataKey="deliveriesSucceeded"
                                 stroke="#10b981"
-                                fill="url(#deliveryGradient)"
+                                fill="#10b98122"
                                 strokeWidth={2}
                                 isAnimationActive={false}
                             />
                         )}
 
-                        {visibleSeries.retries && (
+                        {visibleSeries.deliveriesFailed && (
                             <Area
                                 type="monotone"
-                                name="Retries"
-                                dataKey="retries"
+                                name="Deliveries failed"
+                                dataKey="deliveriesFailed"
                                 stroke="#f59e0b"
-                                fill="url(#retriesGradient)"
+                                fill="#f59e0b22"
                                 strokeWidth={2}
                                 isAnimationActive={false}
                             />
@@ -258,12 +197,83 @@ export function RuntimeMetricsChart({
                                 name="Dead letters"
                                 dataKey="deadLetters"
                                 stroke="#ef4444"
-                                fill="url(#deadLettersGradient)"
+                                fill="#ef444422"
                                 strokeWidth={2}
                                 isAnimationActive={false}
                             />
                         )}
 
+                        {visibleSeries.eventsReceived && (
+                            <Area
+                                type="monotone"
+                                name="Events received"
+                                dataKey="eventsReceived"
+                                stroke="#38bdf8"
+                                fill="#38bdf822"
+                                strokeWidth={2}
+                                isAnimationActive={false}
+                            />
+                        )}
+
+                        {visibleSeries.eventsCompleted && (
+                            <Area
+                                type="monotone"
+                                name="Events completed"
+                                dataKey="eventsCompleted"
+                                stroke="#a78bfa"
+                                fill="#a78bfa22"
+                                strokeWidth={2}
+                                isAnimationActive={false}
+                            />
+                        )}
+
+                        {visibleSeries.eventsUnroutable && (
+                            <Area
+                                type="monotone"
+                                name="Events unroutable"
+                                dataKey="eventsUnroutable"
+                                stroke="#fb7185"
+                                fill="#fb718522"
+                                strokeWidth={2}
+                                isAnimationActive={false}
+                            />
+                        )}
+
+                        {visibleSeries.eventsFailed && (
+                            <Area
+                                type="monotone"
+                                name="Events failed"
+                                dataKey="eventsFailed"
+                                stroke="#dc2626"
+                                fill="#dc262622"
+                                strokeWidth={2}
+                                isAnimationActive={false}
+                            />
+                        )}
+
+                        {visibleSeries.retries && (
+                            <Area
+                                type="monotone"
+                                name="Retries"
+                                dataKey="retries"
+                                stroke="#facc15"
+                                fill="#facc1522"
+                                strokeWidth={2}
+                                isAnimationActive={false}
+                            />
+                        )}
+
+                        {visibleSeries.observations && (
+                            <Area
+                                type="monotone"
+                                name="Observations"
+                                dataKey="observations"
+                                stroke="#14b8a6"
+                                fill="#14b8a622"
+                                strokeWidth={2}
+                                isAnimationActive={false}
+                            />
+                        )}
                     </AreaChart>
                 </ResponsiveContainer>
             </div>

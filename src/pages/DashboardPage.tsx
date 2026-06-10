@@ -15,7 +15,7 @@ export function DashboardPage() {
         },
         {
             label: "Delivered",
-            value: metrics.delivered,
+            value: metrics.deliveriesSucceeded,
             description: "Successful downstream deliveries",
             status: "healthy" as const,
         },

@@ -143,7 +143,7 @@ export function ProcessingPage() {
                     </div>
 
                     <div className="mt-2 text-2xl font-black text-emerald-300">
-                        {metrics.delivered.toLocaleString()}
+                        {metrics.deliveriesSucceeded.toLocaleString()}
                     </div>
                 </div>
 

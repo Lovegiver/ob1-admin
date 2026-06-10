@@ -1,11 +1,7 @@
-export interface RuntimeEventMessage {
-    type: string;
-    message: string;
-    sequence: number;
-}
+import type {RuntimeEvent} from "@/components/runtime/RuntimeEvent.ts";
 
 interface RuntimeEventStreamOptions {
-    onMessage: (message: RuntimeEventMessage) => void;
+    onMessage: (message: RuntimeEvent) => void;
     onOpen?: () => void;
     onClose?: () => void;
     reconnectDelayMs?: number;
@@ -28,14 +24,15 @@ export function connectRuntimeEventStream({
     let reconnectTimer: number | undefined;
 
     function connect() {
-        websocket = new WebSocket("ws://127.0.0.1:8000/ws/runtime");
+        websocket = new WebSocket("ws://127.0.0.1:8000/runtime/events");
 
         websocket.onopen = () => {
             onOpen?.();
         };
 
         websocket.onmessage = (event) => {
-            const data = JSON.parse(event.data) as RuntimeEventMessage;
+            const data = JSON.parse(event.data) as RuntimeEvent;
+            console.log("runtime event", data);
             onMessage(data);
         };
 

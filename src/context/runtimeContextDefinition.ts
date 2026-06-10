@@ -5,19 +5,38 @@ export type RuntimeConnectionStatus = "connected" | "disconnected";
 
 export interface RuntimeMetrics {
     eventsReceived: number;
-    delivered: number;
-    observations: number;
+
+    eventsRouted: number;
+    eventsCompleted: number;
+    eventsUnroutable: number;
+    eventsFailed: number;
+
+    deliveriesSucceeded: number;
+    deliveriesFailed: number;
+
     retries: number;
     deadLetters: number;
+
+    observations: number;
 }
 
 export interface RuntimeMetricsHistoryPoint {
     timestamp: number;
+
     eventsReceived: number;
-    delivered: number;
-    observations: number;
+
+    eventsRouted: number;
+    eventsCompleted: number;
+    eventsUnroutable: number;
+    eventsFailed: number;
+
+    deliveriesSucceeded: number;
+    deliveriesFailed: number;
+
     retries: number;
     deadLetters: number;
+
+    observations: number;
 }
 
 export interface RuntimeContextValue {
@@ -31,3 +50,10 @@ export interface RuntimeContextValue {
 
 export const RuntimeContext =
     createContext<RuntimeContextValue | null>(null);
+
+export interface WorkerHealth {
+    lastStartedAt: string | null;
+    lastFinishedAt: string | null;
+    lastHeartbeatAt: string | null;
+    status: "unknown" | "healthy" | "stale";
+}
