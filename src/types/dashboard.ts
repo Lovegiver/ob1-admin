@@ -2,7 +2,7 @@ export type DashboardMetricStatus = "healthy" | "warning" | "critical" | "neutra
 
 export interface DashboardMetric {
     label: string;
-    value: number;
+    value: number | string;
     description: string;
     status: DashboardMetricStatus;
 }

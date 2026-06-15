@@ -133,7 +133,7 @@ export function ProcessingPage() {
                     </div>
 
                     <div className="mt-2 text-2xl font-black text-cyan-300">
-                        {metrics.eventsReceived.toLocaleString()}
+                        {metrics.eventsTotal.toLocaleString()}
                     </div>
                 </div>
 

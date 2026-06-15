@@ -5,7 +5,10 @@ import {
     type ReactNode,
 } from "react";
 
-import {RuntimeContext, type WorkerHealth} from "@/context/runtimeContextDefinition.ts";
+import {
+    RuntimeContext,
+    type WorkerHealth,
+} from "@/context/runtimeContextDefinition.ts";
 
 import type {
     RuntimeConnectionStatus,
@@ -34,34 +37,42 @@ import {
 } from "@/components/runtime/runtimeEventMappers.ts";
 
 import type { RuntimeEvent } from "@/components/runtime/RuntimeEvent.ts";
-import {RuntimeEventType} from "@/components/runtime/RuntimeEventType.ts";
+import { RuntimeEventType } from "@/components/runtime/RuntimeEventType.ts";
+import {
+    fetchRuntimeMetricsSummary,
+} from "@/services/runtimeMetricsService.ts";
 
 
 interface RuntimeProviderProps {
     children: ReactNode;
 }
 
-
 export function RuntimeProvider({
                                     children,
                                 }: RuntimeProviderProps) {
-
     const [activities, setActivities] = useState<RuntimeActivity[]>([]);
 
     const [metrics, setMetrics] = useState<RuntimeMetrics>({
-        eventsReceived: 0,
+        eventsTotal: 0,
+        pendingEvents: 0,
+        oldestReceivedAgeSeconds: null,
+        oldestPendingDeliveryAgeSeconds: null,
 
         eventsRouted: 0,
         eventsUnroutable: 0,
         eventsFailed: 0,
 
+        deliveriesCreated: 0,
         deliveriesSucceeded: 0,
         deliveriesFailed: 0,
+        pendingDeliveries: 0,
 
         retries: 0,
         deadLetters: 0,
 
         observations: 0,
+
+        summaryGeneratedAt: null,
     });
 
     const [history, setHistory] = useState<RuntimeMetricsHistoryPoint[]>([]);
@@ -70,6 +81,7 @@ export function RuntimeProvider({
         useState<RuntimeConnectionStatus>("disconnected");
 
     const [isTimelinePaused, setIsTimelinePaused] = useState(false);
+
     const currentBucketRef = useRef({
         eventsReceived: 0,
 
@@ -98,20 +110,75 @@ export function RuntimeProvider({
     }
 
     useEffect(() => {
+        let isMounted = true;
 
+        async function hydrateRuntimeMetrics() {
+            try {
+                const summary = await fetchRuntimeMetricsSummary();
+
+                if (!isMounted) {
+                    return;
+                }
+
+                setMetrics((previousMetrics) => ({
+                    ...previousMetrics,
+
+                    eventsTotal: summary.events_total,
+                    pendingEvents: summary.pending_events,
+
+                    eventsRouted: summary.events_routed,
+                    eventsUnroutable: summary.events_unroutable,
+                    eventsFailed: summary.events_failed,
+
+                    deliveriesCreated: summary.deliveries_created,
+                    pendingDeliveries: summary.pending_deliveries,
+                    deliveriesSucceeded: summary.deliveries_succeeded,
+                    deliveriesFailed: summary.deliveries_failed,
+
+                    retries: summary.retry_count,
+                    deadLetters: summary.dead_letters,
+
+                    oldestReceivedAgeSeconds: summary.oldest_received_age_seconds,
+                    oldestPendingDeliveryAgeSeconds: summary.oldest_pending_delivery_age_seconds,
+                    summaryGeneratedAt: summary.generated_at,
+                }));
+            } catch (error) {
+                console.error(
+                    "Failed to hydrate runtime metrics summary",
+                    error,
+                );
+            }
+        }
+
+        void hydrateRuntimeMetrics();
+
+        const intervalId = window.setInterval(() => {
+            void hydrateRuntimeMetrics();
+        }, 10_000);
+
+        return () => {
+            isMounted = false;
+            window.clearInterval(intervalId);
+        };
+    }, []);
+
+    useEffect(() => {
         return connectRuntimeEventStream({
+            onOpen: () => setConnectionStatus("connected"),
+            onClose: () => setConnectionStatus("disconnected"),
 
             onMessage: (data: RuntimeEvent) => {
-
                 if (isInfrastructureEvent(data)) {
                     setWorkerHealth((previousHealth) => ({
                         ...previousHealth,
-                        lastStartedAt: data.type === RuntimeEventType.WorkerCycleStarted
-                            ? data.timestamp
-                            : previousHealth.lastStartedAt,
-                        lastFinishedAt: data.type === RuntimeEventType.WorkerCycleFinished
-                            ? data.timestamp
-                            : previousHealth.lastFinishedAt,
+                        lastStartedAt:
+                            data.type === RuntimeEventType.WorkerCycleStarted
+                                ? data.timestamp
+                                : previousHealth.lastStartedAt,
+                        lastFinishedAt:
+                            data.type === RuntimeEventType.WorkerCycleFinished
+                                ? data.timestamp
+                                : previousHealth.lastFinishedAt,
                         lastHeartbeatAt: data.timestamp,
                         status: "healthy",
                     }));
@@ -127,55 +194,6 @@ export function RuntimeProvider({
                     severity: resolveRuntimeSeverity(data),
                 };
 
-                setMetrics((previousMetrics) => {
-
-                    const updatedMetrics = {
-                        ...previousMetrics,
-                    };
-
-                    if (isEventReceived(data)) {
-                        updatedMetrics.eventsReceived += 1;
-                    }
-
-                    if (isEventRouted(data)) {
-                        updatedMetrics.eventsRouted += 1;
-                    }
-
-                    if (isEventUnroutable(data)) {
-                        updatedMetrics.eventsUnroutable += 1;
-                    }
-
-                    if (isEventFailed(data)) {
-                        updatedMetrics.eventsFailed += 1;
-                    }
-
-                    if (isDeliverySuccess(data)) {
-                        updatedMetrics.deliveriesSucceeded += 1;
-                    }
-
-                    if (isDeliveryFailure(data)) {
-                        updatedMetrics.deliveriesFailed += 1;
-                    }
-
-                    if (isDeadLetterRetryRequested(data)) {
-                        updatedMetrics.retries += 1;
-                    }
-
-                    if (isDeliveryDeadLettered(data)) {
-                        updatedMetrics.deadLetters += 1;
-                    }
-
-                    if (isMetricsExtracted(data)) {
-
-                        const observationCount = Number(
-                            data.payload?.observation_count ?? 0,
-                        );
-
-                        updatedMetrics.observations += observationCount;
-                    }
-
-                    return updatedMetrics;
-                });
 
                 if (isEventReceived(data)) {
                     currentBucketRef.current.eventsReceived += 1;
@@ -210,7 +228,6 @@ export function RuntimeProvider({
                 }
 
                 if (isMetricsExtracted(data)) {
-
                     const observationCount = Number(
                         data.payload?.observation_count ?? 0,
                     );
@@ -219,7 +236,6 @@ export function RuntimeProvider({
                 }
 
                 setActivities((previousActivities) => {
-
                     if (isTimelinePaused) {
                         return previousActivities;
                     }
@@ -231,25 +247,13 @@ export function RuntimeProvider({
                 });
             },
 
-            onOpen: () => {
-                setConnectionStatus("connected");
-            },
-
-            onClose: () => {
-                setConnectionStatus("disconnected");
-            },
-
             reconnectDelayMs: 3000,
         });
-
     }, [isTimelinePaused]);
 
     useEffect(() => {
-
         const intervalId = window.setInterval(() => {
-
             setHistory((previousHistory) => {
-
                 const bucket = currentBucketRef.current;
 
                 const nextPoint: RuntimeMetricsHistoryPoint = {
@@ -291,13 +295,11 @@ export function RuntimeProvider({
                     nextPoint,
                 ].slice(-60);
             });
-
         }, 1000);
 
         return () => {
             window.clearInterval(intervalId);
         };
-
     }, []);
 
     useEffect(() => {
@@ -308,7 +310,8 @@ export function RuntimeProvider({
                 }
 
                 const heartbeatAgeMs =
-                    Date.now() - new Date(previousHealth.lastHeartbeatAt).getTime();
+                    Date.now() -
+                    new Date(previousHealth.lastHeartbeatAt).getTime();
 
                 return {
                     ...previousHealth,
@@ -318,7 +321,7 @@ export function RuntimeProvider({
         }, 5000);
 
         return () => window.clearInterval(intervalId);
-    }, [workerHealth]);
+    }, []);
 
     return (
         <RuntimeContext.Provider

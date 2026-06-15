@@ -4,19 +4,26 @@ import type { RuntimeActivity } from "@/components/dashboard/ActivityFeed.tsx";
 export type RuntimeConnectionStatus = "connected" | "disconnected";
 
 export interface RuntimeMetrics {
-    eventsReceived: number;
+    eventsTotal: number;
+    pendingEvents: number;
+    oldestReceivedAgeSeconds: number | null;
+    oldestPendingDeliveryAgeSeconds: number | null;
 
     eventsRouted: number;
     eventsUnroutable: number;
     eventsFailed: number;
 
+    deliveriesCreated: number;
     deliveriesSucceeded: number;
     deliveriesFailed: number;
+    pendingDeliveries: number;
 
     retries: number;
     deadLetters: number;
 
     observations: number;
+
+    summaryGeneratedAt: string | null;
 }
 
 export interface RuntimeMetricsHistoryPoint {
