@@ -1,13 +1,16 @@
+import { YamlObservatory } from "@/services/YamlObservatory";
+
 export function MetricsPage() {
     return (
-        <div>
-            <h2 className="text-3xl font-black text-slate-100">
-                Metrics
-            </h2>
+        <div className="space-y-6">
+            <div>
+                <h1 className="text-3xl font-semibold tracking-tight">Metrics</h1>
+                <p className="text-muted-foreground">
+                    Define, validate, and preview YAML metric extraction plans.
+                </p>
+            </div>
 
-            <p className="mt-2 text-slate-400">
-                Analytical metrics and YAML processing definitions.
-            </p>
+            <YamlObservatory />
         </div>
     );
 }
