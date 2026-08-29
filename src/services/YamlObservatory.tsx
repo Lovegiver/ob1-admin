@@ -273,9 +273,6 @@ function isValidPrometheusName(value: string): boolean {
 }
 
 export function YamlObservatory() {
-
-    localStorage.setItem("access_token", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxIiwiZW1haWwiOiJmcmVkZXJpYy5jb3VyY2llckBnbWFpbC5jb20iLCJyb2xlIjoiVVNFUiIsImV4cCI6MTc4MjI5MDMwN30.G4pOEsyZ6cCttm0pmppGmoCGiWS3Yg4XStQ9BVJ5F8g")
-
     const [projectId, setProjectId] = useState<number>(1);
 
     const [eventTypes, setEventTypes] = useState<EventTypeRead[]>([]);

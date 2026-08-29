@@ -142,11 +142,8 @@ export function RuntimeProvider({
                     oldestPendingDeliveryAgeSeconds: summary.oldest_pending_delivery_age_seconds,
                     summaryGeneratedAt: summary.generated_at,
                 }));
-            } catch (error) {
-                console.error(
-                    "Failed to hydrate runtime metrics summary",
-                    error,
-                );
+            } catch {
+                // L'écran conserve son état neutre ; les erreurs 401/403 sont gérées centralement.
             }
         }
 

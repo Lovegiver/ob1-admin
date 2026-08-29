@@ -22,15 +22,6 @@ export interface RuntimeMetricsSummaryResponse {
 }
 
 export async function fetchRuntimeMetricsSummary(): Promise<RuntimeMetricsSummaryResponse> {
-    const response = await fetch(
-        "http://127.0.0.1:8000/api/runtime/metrics/summary",
-    );
-
-    if (!response.ok) {
-        throw new Error(
-            `Failed to fetch runtime metrics summary: ${response.status}`,
-        );
-    }
-
-    return response.json();
+    return apiRequest<RuntimeMetricsSummaryResponse>("/api/runtime/metrics/summary");
 }
+import { apiRequest } from "@/services/apiClient";

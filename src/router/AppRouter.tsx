@@ -7,16 +7,31 @@ import { EventTypesPage } from "../pages/EventTypesPage";
 import { MetricsPage } from "../pages/MetricsPage";
 import { ProjectsPage } from "../pages/ProjectsPage";
 import { ProcessingPage } from "@/pages/ProcessingPage.tsx";
+import { RuntimeProvider } from "@/context/RuntimeContext.tsx";
+import { LoginPage } from "@/pages/LoginPage";
+import { ForbiddenPage } from "@/pages/ForbiddenPage";
+import { NotFoundPage } from "@/pages/NotFoundPage";
+import { RequireAuth } from "@/router/RequireAuth";
+import { HttpErrorNavigation } from "@/router/HttpErrorNavigation";
+
+function AuthenticatedApplication() {
+    return (
+        <RequireAuth>
+            <RuntimeProvider>
+                <AppLayout />
+            </RuntimeProvider>
+        </RequireAuth>
+    );
+}
 
 export function AppRouter() {
     return (
         <BrowserRouter>
-            <AppLayout>
-                <Routes>
-                    <Route
-                        path="/"
-                        element={<DashboardPage />}
-                    />
+            <HttpErrorNavigation />
+            <Routes>
+                <Route path="/login" element={<LoginPage />} />
+                <Route element={<AuthenticatedApplication />}>
+                    <Route index element={<DashboardPage />} />
 
                     <Route
                         path="/projects"
@@ -33,12 +48,11 @@ export function AppRouter() {
                         element={<MetricsPage />}
                     />
 
-                    <Route
-                        path="/processing"
-                        element={<ProcessingPage />}
-                    />
-                </Routes>
-            </AppLayout>
+                    <Route path="/processing" element={<ProcessingPage />} />
+                    <Route path="/forbidden" element={<ForbiddenPage />} />
+                </Route>
+                <Route path="*" element={<NotFoundPage />} />
+            </Routes>
         </BrowserRouter>
     );
 }
