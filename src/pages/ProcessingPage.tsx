@@ -20,6 +20,7 @@ import { toast } from "sonner";
 
 import type { ProcessingChain } from "@/data/mockDashboard.ts";
 import { fetchProcessingChains } from "@/services/processingChainService.ts";
+import { getWebSocketBaseUrl } from "@/config/environment";
 
 type ChainStatusFilter = "all" | "active" | "draft";
 
@@ -27,17 +28,14 @@ export function ProcessingPage() {
     const [statusFilter, setStatusFilter] = useState<ChainStatusFilter>("all");
     const [processingChains, setProcessingChains] = useState<ProcessingChain[]>([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [loadError, setLoadError] = useState(false);
     const [selectedChain, setSelectedChain] = useState<ProcessingChain | null>(null);
     const { metrics } = useRuntime();
 
     useEffect(() => {
         const websocket = new WebSocket(
-            "ws://127.0.0.1:8000/ws/runtime",
+            `${getWebSocketBaseUrl()}/ws/runtime`,
         );
-
-        websocket.onopen = () => {
-            console.log("OB1 runtime websocket connected");
-        };
 
         websocket.onmessage = (event) => {
             const data = JSON.parse(event.data);
@@ -45,10 +43,6 @@ export function ProcessingPage() {
             toast.info("Runtime Event", {
                 description: data.message,
             });
-        };
-
-        websocket.onclose = () => {
-            console.log("OB1 runtime websocket disconnected");
         };
 
         return () => {
@@ -60,11 +54,20 @@ export function ProcessingPage() {
         let isMounted = true;
 
         async function loadProcessingChains() {
-            const chains = await fetchProcessingChains();
+            try {
+                const chains = await fetchProcessingChains();
 
-            if (isMounted) {
-                setProcessingChains(chains);
-                setIsLoading(false);
+                if (isMounted) {
+                    setProcessingChains(chains);
+                }
+            } catch {
+                if (isMounted) {
+                    setLoadError(true);
+                }
+            } finally {
+                if (isMounted) {
+                    setIsLoading(false);
+                }
             }
         }
 
@@ -93,6 +96,14 @@ export function ProcessingPage() {
                         Loading Runtime Chains
                     </div>
                 </div>
+            </div>
+        );
+    }
+
+    if (loadError) {
+        return (
+            <div role="alert" className="rounded-2xl border border-amber-400/20 bg-amber-400/5 p-6 text-amber-100">
+                Les chaînes de traitement ne sont pas disponibles pour le moment.
             </div>
         );
     }

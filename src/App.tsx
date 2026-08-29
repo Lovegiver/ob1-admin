@@ -1,13 +1,13 @@
 import { Toaster } from "@/components/ui/sonner.tsx";
-import { RuntimeProvider } from "@/context/RuntimeContext.tsx";
+import { AuthProvider } from "@/auth/AuthProvider";
 import { AppRouter } from "./router/AppRouter";
 
 function App() {
     return (
-        <RuntimeProvider>
+        <AuthProvider>
             <AppRouter />
             <Toaster />
-        </RuntimeProvider>
+        </AuthProvider>
     );
 }
 

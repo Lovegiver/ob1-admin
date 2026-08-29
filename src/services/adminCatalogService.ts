@@ -1,13 +1,4 @@
-const API_BASE_URL = "http://127.0.0.1:8000";
-
-function getAuthHeaders(): HeadersInit {
-    const token = localStorage.getItem("access_token");
-
-    return {
-        "Content-Type": "application/json",
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
-    };
-}
+import { apiRequest } from "@/services/apiClient";
 
 export interface EventTypeRead {
     id: number;
@@ -30,33 +21,15 @@ export interface SchemaDefinitionRead {
 export async function listEventTypesByProject(
     projectId: number,
 ): Promise<EventTypeRead[]> {
-    const response = await fetch(
-        `${API_BASE_URL}/api/admin/event-types/by-project/${projectId}`,
-        {
-            headers: getAuthHeaders(),
-        },
+    return apiRequest<EventTypeRead[]>(
+        `/api/admin/event-types/by-project/${projectId}`,
     );
-
-    if (!response.ok) {
-        throw new Error(`Failed to load event types: HTTP ${response.status}`);
-    }
-
-    return response.json();
 }
 
 export async function listSchemasByEventType(
     eventTypeId: number,
 ): Promise<SchemaDefinitionRead[]> {
-    const response = await fetch(
-        `${API_BASE_URL}/api/admin/event-types/${eventTypeId}/schemas`,
-        {
-            headers: getAuthHeaders(),
-        },
+    return apiRequest<SchemaDefinitionRead[]>(
+        `/api/admin/event-types/${eventTypeId}/schemas`,
     );
-
-    if (!response.ok) {
-        throw new Error(`Failed to load schemas: HTTP ${response.status}`);
-    }
-
-    return response.json();
 }

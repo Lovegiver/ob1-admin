@@ -1,4 +1,5 @@
 import type {RuntimeEvent} from "@/components/runtime/RuntimeEvent.ts";
+import { getWebSocketBaseUrl } from "@/config/environment";
 
 interface RuntimeEventStreamOptions {
     onMessage: (message: RuntimeEvent) => void;
@@ -24,7 +25,7 @@ export function connectRuntimeEventStream({
     let reconnectTimer: number | undefined;
 
     function connect() {
-        websocket = new WebSocket("ws://127.0.0.1:8000/runtime/events");
+        websocket = new WebSocket(`${getWebSocketBaseUrl()}/runtime/events`);
 
         websocket.onopen = () => {
             onOpen?.();
@@ -32,7 +33,6 @@ export function connectRuntimeEventStream({
 
         websocket.onmessage = (event) => {
             const data = JSON.parse(event.data) as RuntimeEvent;
-            console.log("runtime event", data);
             onMessage(data);
         };
 
