@@ -42,8 +42,30 @@ Le client HTTP commun ajoute le bearer aux appels authentifiés, structure les e
 
 Les routes applicatives sont protégées pendant la restauration comme pour un utilisateur anonyme. Après une nouvelle connexion, une destination interne demandée auparavant peut être reprise ; les destinations externes et chemins ambigus sont rejetés.
 
-## Limites actuelles
+## Projects et membres
 
-Les permissions par projet ne sont pas inventées par le frontend. Leur consommation dépendra des contrats livrés avec [Projects et membres](https://github.com/Lovegiver/outbox-service/issues/91) et [API keys](https://github.com/Lovegiver/outbox-service/issues/92).
+La route `/projects` liste les Projects accessibles à l’utilisateur courant (`Tous les Projects` pour un ADMIN global). La sélection utilise une URL explicite `/projects/:projectId`. Seul l’identifiant non sensible du Project courant est conservé dans `sessionStorage`; il est revalidé contre la liste accessible et supprimé au logout ou lorsqu’il n’est plus accessible.
+
+Les capacités actuellement reliées au backend sont :
+
+- création d’un Project et attribution automatique du rôle OWNER au créateur ;
+- consultation des informations renvoyées par la liste ;
+- désactivation confirmée, sans la présenter comme une suppression ;
+- liste des membres ;
+- ajout d’un compte OB1 existant ;
+- changement de rôle parmi `OWNER`, `DEVELOPER` et `VIEWER` ;
+- retrait confirmé d’un membre.
+
+Le frontend utilise le rôle global de `/auth/me` et le rôle Project réellement chargé uniquement pour améliorer l’ergonomie. Le backend reste autoritaire et un 403 local conserve la session tout en affichant l’erreur dans le parcours. La rétrogradation et le retrait du dernier OWNER sont désactivés lorsque l’état chargé permet de les reconnaître ; le backend vérifie toujours cet invariant au moment de la transaction et son éventuel refus concurrent est affiché.
+
+Le backend ne fournit actuellement ni détail Project individuel, ni modification, ni réactivation, ni suppression physique. Il permet seulement d’ajouter un utilisateur déjà enregistré : aucun workflow d’invitation ou envoi d’e-mail n’est simulé. Ces limites restent suivies par les issues [profil](https://github.com/Lovegiver/outbox-service/issues/23), [invitations](https://github.com/Lovegiver/outbox-service/issues/31) et [départ du dernier OWNER](https://github.com/Lovegiver/outbox-service/issues/34).
+
+Les API keys restent entièrement hors de ce parcours et constituent la prochaine étape distincte : [issue #92](https://github.com/Lovegiver/outbox-service/issues/92).
+
+## Dépendances et compatibilité
+
+Le lot Projects n’effectue aucune migration de dépendance. La fondation utilise déjà React 19, React Router 7, Vite 8, TypeScript 6, ESLint 10 et Vitest 4. Les majors disponibles sans besoin fonctionnel direct sont différées afin de ne pas coupler #91 à une migration générale. `npm outdated` et `npm audit` doivent être réévalués dans une intervention dédiée avant toute montée majeure.
+
+## Limites actuelles
 
 La base WebSocket est configurable, mais le runtime existant n’est pas refondu dans ce lot. Aucun token n’est placé dans son URL et cette interface ne prétend pas résoudre l’authentification ou le scope Project du WebSocket, suivis dans [l’issue runtime](https://github.com/Lovegiver/outbox-service/issues/96).

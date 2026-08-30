@@ -37,6 +37,7 @@ export function AppRouter() {
                         path="/projects"
                         element={<ProjectsPage />}
                     />
+                    <Route path="/projects/:projectId" element={<ProjectsPage />} />
 
                     <Route
                         path="/event-types"

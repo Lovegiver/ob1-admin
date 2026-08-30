@@ -113,6 +113,22 @@ describe("apiRequest", () => {
         unsubscribe();
     });
 
+    it("un 403 local conserve la session sans navigation globale", async () => {
+        const listener = vi.fn();
+        const unsubscribe = httpEvents.onForbidden(listener);
+        const token = createAccessToken();
+        tokenStorage.write(token);
+        fetchMock.mockResolvedValue(jsonResponse({ detail: "Insufficient project permissions" }, 403));
+
+        await expect(apiRequest("/restricted", { forbidden: "local" })).rejects.toMatchObject({ status: 403 });
+
+        expect(tokenStorage.read()).toBe(token);
+        expect(listener).not.toHaveBeenCalled();
+        const request = fetchMock.mock.calls[0][1];
+        expect(request).not.toHaveProperty("forbidden");
+        unsubscribe();
+    });
+
     it("retire les JWT et champs sensibles des erreurs publiques", async () => {
         const token = createAccessToken();
         fetchMock.mockResolvedValue(jsonResponse({

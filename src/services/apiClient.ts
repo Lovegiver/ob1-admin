@@ -29,6 +29,7 @@ export class ApiError extends Error implements PublicApiError {
 interface ApiRequestOptions extends Omit<RequestInit, "body"> {
     body?: unknown;
     token?: string | null;
+    forbidden?: "global" | "local";
 }
 
 function sanitizeText(value: string): string {
@@ -114,6 +115,7 @@ export async function apiRequest<T = void>(
 
     const {
         body,
+        forbidden = "global",
         token: tokenOverride,
         ...requestOptions
     } = options;
@@ -160,7 +162,7 @@ export async function apiRequest<T = void>(
         if (response.status === 401) {
             tokenStorage.clear();
             httpEvents.unauthorized();
-        } else if (response.status === 403) {
+        } else if (response.status === 403 && forbidden === "global") {
             httpEvents.forbidden();
         }
 
